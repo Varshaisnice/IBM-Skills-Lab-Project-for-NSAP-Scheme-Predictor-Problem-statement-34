@@ -1,11 +1,28 @@
 from flask import Flask, request, jsonify, render_template
 import requests
+import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 app = Flask(__name__)
 
-# 🔑 Replace with your actual IBM Cloud credentials
-API_KEY = "Zn-6XI7s8NDzJlOjS9Ae4-VDy-tbVoxy4CgNVwp_FlFy"
-DEPLOYMENT_URL = "https://eu-gb.ml.cloud.ibm.com/ml/v4/deployments/226586f7-98cb-42c8-b5c3-e82d24ebbeb1/predictions?version=2021-05-01"
+# Retrieve IBM Cloud credentials from environment variables
+API_KEY = os.getenv("IBM_API_KEY")
+DEPLOYMENT_URL = os.getenv("IBM_DEPLOYMENT_URL")
+
+# Validate environment variables
+if not API_KEY or not DEPLOYMENT_URL:
+    raise ValueError("Missing required environment variables: IBM_API_KEY or IBM_DEPLOYMENT_URL")
+
+# Eligibility criteria for NSAP schemes (example, expand as needed)
+ELIGIBILITY_CRITERIA = {
+    "IGNOAPS": "Age 60+ years, BPL household, no regular income source.",
+    "IGNWPS": "Widow aged 40-79 years, BPL household.",
+    "IGNDPS": "Persons with severe disabilities, aged 18-79 years, BPL household.",
+    "NSAP": "General NSAP eligibility: BPL household, no other pension support."
+}
 
 def get_token():
     url = "https://iam.cloud.ibm.com/identity/token"
@@ -14,7 +31,7 @@ def get_token():
 
     try:
         res = requests.post(url, headers=headers, data=data)
-        res.raise_for_status()  # Raise exception for HTTP errors
+        res.raise_for_status()
         json_data = res.json()
         access_token = json_data.get("access_token")
         if access_token:
@@ -42,7 +59,8 @@ def predict():
             "totalaadhaar", "totalmobilenumber"
         ]
 
-        values = [[input_data.get(field) for field in fields]]
+        # Ensure all fields are provided, set defaults to 0 for numeric fields if missing
+        values = [[input_data.get(field, 0 if field not in ["statename", "districtname"] else "") for field in fields]]
 
         payload = {
             "input_data": [{
@@ -57,12 +75,24 @@ def predict():
 
         headers = {"Authorization": f"Bearer {token}"}
         response = requests.post(DEPLOYMENT_URL, json=payload, headers=headers)
-        response.raise_for_status()  # Raises HTTPError if request failed
+        response.raise_for_status()
 
         result = response.json()
-        prediction = result["predictions"][0]["values"][0][0]
+        prediction_data = result["predictions"][0]["values"][0]
+        prediction = prediction_data[0]  # Predicted scheme
+        probabilities = prediction_data[1] if len(prediction_data) > 1 else [1.0]  # Probabilities (if available)
+        
+        # Calculate confidence score (highest probability)
+        confidence_score = max(probabilities) * 100 if probabilities else 100.0
+        
+        # Get eligibility criteria
+        eligibility = ELIGIBILITY_CRITERIA.get(prediction, "No eligibility criteria available.")
 
-        return jsonify({"scheme": prediction})
+        return jsonify({
+            "scheme": prediction,
+            "confidence_score": f"{confidence_score:.2f}%",
+            "eligibility_criteria": eligibility
+        })
 
     except Exception as e:
         return jsonify({"error": "Prediction failed", "details": str(e)}), 500
