@@ -1,4 +1,6 @@
 # IBM-Skills-Lab-Project-for-NSAP-Scheme-Predictor-Problem-statement-34
+Project By Varsha M ,email id:mvarsha4306@gmail.com
+
 📊 Rural Scheme Recommendation Web App (IBM Cloud + Flask)
 
 This project is a Flask-based web application that integrates with IBM Watson Machine Learning to predict suitable government schemes based on rural population data. It takes demographic input (gender, caste, Aadhaar coverage, etc.) and returns AI-driven scheme suggestions deployed via IBM Cloud.
