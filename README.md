@@ -42,8 +42,8 @@ This project is a Flask-based web application that integrates with IBM Watson Ma
 
     Clone the repo:
 
-     git clone https://github.com/your-username/skillsbuild_project.git
-     cd skillsbuild_project
+     git clone https://github.com/Varshaisnice/IBM-Skills-Lab-Project-for-NSAP-Scheme-Predictor-Problem-statement-34.git
+     cd IBM-Skills-Lab-Project-for-NSAP-Scheme-Predictor-Problem-statement-34
       
     Install dependencies:
       
