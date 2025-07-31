@@ -7,7 +7,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 min-h-screen flex flex-col items-center justify-between">
-  <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md mt-8">
+  <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-lg mt-8">
     <h1 class="text-2xl font-bold text-gray-800 mb-6 text-center">NSAP Scheme Predictor</h1>
     
     <form id="predict-form" class="space-y-4">
@@ -15,38 +15,72 @@
         <label class="block text-sm font-medium text-gray-700">Financial Year</label>
         <input type="text" name="finyear" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" required>
       </div>
-
+      <div>
+        <label class="block text-sm font-medium text-gray-700">LGD State Code</label>
+        <input type="text" name="lgdstatecode" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" required>
+      </div>
       <div>
         <label class="block text-sm font-medium text-gray-700">State Name</label>
         <input type="text" name="statename" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" required>
       </div>
-
+      <div>
+        <label class="block text-sm font-medium text-gray-700">LGD District Code</label>
+        <input type="text" name="lgddistrictcode" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" required>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700">District Name</label>
+        <input type="text" name="districtname" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" required>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Total Beneficiaries</label>
+        <input type="number" name="totalbeneficiaries" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" required>
+      </div>
       <div>
         <label class="block text-sm font-medium text-gray-700">Total Male</label>
         <input type="number" name="totalmale" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" required>
       </div>
-
       <div>
         <label class="block text-sm font-medium text-gray-700">Total Female</label>
         <input type="number" name="totalfemale" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" required>
       </div>
-
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Total Transgender</label>
+        <input type="number" name="totaltransgender" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" required>
+      </div>
       <div>
         <label class="block text-sm font-medium text-gray-700">Total SC</label>
         <input type="number" name="totalsc" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" required>
       </div>
-
       <div>
         <label class="block text-sm font-medium text-gray-700">Total ST</label>
         <input type="number" name="totalst" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" required>
       </div>
-
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Total General</label>
+        <input type="number" name="totalgen" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" required>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Total OBC</label>
+        <input type="number" name="totalobc" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" required>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Total Aadhaar</label>
+        <input type="number" name="totalaadhaar" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" required>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Total Mobile Number</label>
+        <input type="number" name="totalmobilenumber" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" required>
+      </div>
       <button type="submit" class="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
         Predict
       </button>
     </form>
 
-    <h2 id="result" class="mt-6 text-lg font-medium text-gray-800 text-center"></h2>
+    <div id="result" class="mt-6 text-lg font-medium text-gray-800">
+      <p id="scheme" class="text-center"></p>
+      <p id="confidence" class="text-center"></p>
+      <p id="eligibility" class="text-center"></p>
+    </div>
   </div>
 
   <footer class="bg-gray-800 text-white text-center py-4 w-full">
@@ -72,10 +106,20 @@
       })
       .then(res => res.json())
       .then(data => {
-        document.getElementById("result").textContent = "Predicted Scheme: " + data.scheme;
+        if (data.error) {
+          document.getElementById("scheme").textContent = `Error: ${data.error}`;
+          document.getElementById("confidence").textContent = "";
+          document.getElementById("eligibility").textContent = "";
+        } else {
+          document.getElementById("scheme").textContent = `Predicted Scheme: ${data.scheme}`;
+          document.getElementById("confidence").textContent = `Confidence Score: ${data.confidence_score}`;
+          document.getElementById("eligibility").textContent = `Eligibility Criteria: ${data.eligibility_criteria}`;
+        }
       })
       .catch(error => {
-        document.getElementById("result").textContent = "Error: Unable to fetch prediction";
+        document.getElementById("scheme").textContent = "Error: Unable to fetch prediction";
+        document.getElementById("confidence").textContent = "";
+        document.getElementById("eligibility").textContent = "";
       });
     });
   </script>
